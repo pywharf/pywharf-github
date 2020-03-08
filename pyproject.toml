@@ -17,6 +17,7 @@ packages = [
 
 [tool.poetry.dependencies]
 python = "^3.7"
+private-pypi-core = "0.*"
 requests = "^2.23.0"
 PyGithub = "^1.46"
 
