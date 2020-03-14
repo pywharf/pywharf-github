@@ -397,9 +397,8 @@ def github_create_package_repo(
         gh_entity = gh_client.get_organization(owner)
 
     # Create repo.
-    description = (
-            'Autogen package repository of private-pypi/private-pypi, '
-            f'created by user {gh_user.login}. ')
+    description = ('Autogen package repository of private-pypi/private-pypi, '
+                   f'created by user {gh_user.login}. ')
     gh_repo = gh_entity.create_repo(
             name=repo,
             description=description,
