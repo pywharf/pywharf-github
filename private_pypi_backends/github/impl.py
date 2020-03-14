@@ -13,7 +13,8 @@ import requests
 import toml
 
 import private_pypi
-from private_pypi.backends.backend import (
+from private_pypi.backend import (
+        BackendInstanceManager,
         PkgRef,
         PkgRepo,
         PkgRepoConfig,
@@ -366,6 +367,11 @@ class GitHubPkgRepo(PkgRepo):
             with open(path, 'wb') as fout:
                 fout.write(content_file.decoded_content)
 
+            return DownloadIndexResult(status=DownloadIndexStatus.SUCCEEDED)
+
+        except github.UnknownObjectException:
+            # Index file not exists in remote.
+            BackendInstanceManager.dump_pkg_refs(path, [])
             return DownloadIndexResult(status=DownloadIndexStatus.SUCCEEDED)
 
         except Exception:  # pylint: disable=broad-except
