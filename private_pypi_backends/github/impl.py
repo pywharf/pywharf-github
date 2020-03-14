@@ -12,8 +12,7 @@ import github
 import requests
 import toml
 
-import private_pypi
-from private_pypi.backend import (
+from private_pypi_core.backend import (
         BackendInstanceManager,
         PkgRef,
         PkgRepo,
@@ -29,7 +28,7 @@ from private_pypi.backend import (
         record_error_if_raises,
         basic_model_get_default,
 )
-from private_pypi.utils import git_hash_sha, split_package_ext
+from private_pypi_core.utils import git_hash_sha, split_package_ext
 
 GITHUB_TYPE = 'github'
 
@@ -399,8 +398,7 @@ def github_create_package_repo(
 
     # Create repo.
     description = (
-            'Autogen package repository of private-pypi/private-pypi '
-            f'({private_pypi.__doc__} homepage https://github.com/private-pypi/private-pypi), '
+            'Autogen package repository of private-pypi/private-pypi, '
             f'created by user {gh_user.login}. ')
     gh_repo = gh_entity.create_repo(
             name=repo,

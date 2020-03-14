@@ -7,7 +7,7 @@ import shortuuid
 import github
 
 from private_pypi_testkit import TestKit, RepoInfoForTest
-from private_pypi.backend import (
+from private_pypi_core.backend import (
         BackendInstanceManager,
         UploadIndexStatus,
 )

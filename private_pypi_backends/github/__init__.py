@@ -1,4 +1,4 @@
-from private_pypi.backend import BackendRegistration
+from private_pypi_core.backend import BackendRegistration
 from private_pypi_backends.github.impl import (
         GITHUB_TYPE,
         GitHubConfig,
