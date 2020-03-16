@@ -70,7 +70,7 @@ class GitHubTestKit(TestKit):
 
         with tempfile.NamedTemporaryFile() as ntf:
             pkg_refs = pkg_repo.collect_all_published_packages()
-            BackendInstanceManager.dump_pkg_refs(ntf.name, pkg_refs)
+            BackendInstanceManager.dump_pkg_refs_and_mtime(ntf.name, pkg_refs)
 
             assert not pkg_repo.local_index_is_up_to_date(ntf.name)
             result = pkg_repo.upload_index(ntf.name)

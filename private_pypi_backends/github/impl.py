@@ -370,7 +370,7 @@ class GitHubPkgRepo(PkgRepo):
 
         except github.UnknownObjectException:
             # Index file not exists in remote.
-            BackendInstanceManager.dump_pkg_refs(path, [])
+            BackendInstanceManager.dump_pkg_refs_and_mtime(path, [])
             return DownloadIndexResult(status=DownloadIndexStatus.SUCCEEDED)
 
         except Exception:  # pylint: disable=broad-except
