@@ -1,6 +1,5 @@
 from enum import Enum, auto
 from dataclasses import dataclass
-import hashlib
 import os
 import os.path
 import traceback
