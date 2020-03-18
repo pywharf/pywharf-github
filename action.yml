@@ -19,8 +19,9 @@ inputs:
     default: ${{ github.token }}
 runs:
   using: 'docker'
-  image: 'docker://privatepypi/private-pypi:0.1.0a2'
+  image: 'docker://privatepypi/private-pypi:0.1.0a3'
   args:
+    - 'github.init_pkg_repo'
     - '--name'
     - ${{ inputs.github_repository }}
     - '--token'
