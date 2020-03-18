@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "private-pypi-github"
-version = "0.1.1-alpha.6"
+version = "0.1.1-alpha.7"
 description = ""
 license = "MIT"
 authors = ["huntzhan <huntzhan.dev@gmail.com>"]
