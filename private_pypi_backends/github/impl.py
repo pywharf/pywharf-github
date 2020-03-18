@@ -106,9 +106,11 @@ class JobType(Enum):
     DOWNLOAD_PACKAGE = auto()
 
 
-@dataclass
 class GitHubUploadPackageContext(UploadPackageContext):
-    release: github.GitRelease.GitRelease = None
+    release: Optional[github.GitRelease.GitRelease] = None
+
+    class Config:
+        arbitrary_types_allowed = True
 
 
 LOCK_TIMEOUT = 0.5
@@ -379,7 +381,7 @@ class GitHubPkgRepo(PkgRepo):
             return DownloadIndexResult(status=DownloadIndexStatus.FAILED, message=error_message)
 
 
-def github_create_package_repo(
+def github_init_pkg_repo(
         name: str,
         repo: str,
         token: str,
@@ -480,4 +482,4 @@ jobs:
     print(toml.dumps({name: github_config_dict}))
 
 
-github_create_package_repo_cli = lambda: fire.Fire(github_create_package_repo)  # pylint: disable=invalid-name
+github_init_pkg_repo_cli = lambda: fire.Fire(github_init_pkg_repo)  # pylint: disable=invalid-name

@@ -5,7 +5,7 @@ from private_pypi_backends.github.impl import (
         GitHubAuthToken,
         GitHubPkgRepo,
         GitHubPkgRef,
-        github_create_package_repo_cli,
+        github_init_pkg_repo_cli,
 )
 
 
@@ -15,4 +15,4 @@ class GitHubRegistration(BackendRegistration):
     pkg_repo_secret_cls = GitHubAuthToken
     pkg_repo_cls = GitHubPkgRepo
     pkg_ref_cls = GitHubPkgRef
-    cli_name_to_func = {'create_package_repo': github_create_package_repo_cli}
+    cli_name_to_func = {'init_pkg_repo': github_init_pkg_repo_cli}

@@ -1,5 +1,4 @@
 from datetime import datetime
-import tempfile
 from typing import Tuple
 import os
 
@@ -7,11 +6,9 @@ import shortuuid
 import github
 
 from private_pypi_testkit import TestKit, RepoInfoForTest
-from private_pypi_core.backend import (
-        BackendInstanceManager,
-        UploadIndexStatus,
-)
+from private_pypi_core.workflow import update_index
 from private_pypi_backends.github.impl import (
+        GITHUB_TYPE,
         GitHubConfig,
         GitHubAuthToken,
 )
@@ -65,16 +62,17 @@ class GitHubTestKit(TestKit):
 
     @classmethod
     def update_repo_index(cls, repo: RepoInfoForTest) -> bool:
-        pkg_repo_shstg = repo.wstat.name_to_pkg_repo_shstg[repo.name]
-        pkg_repo = pkg_repo_shstg.get_item(repo.write_secret)
+        config_kwargs = repo.wstat.name_to_pkg_repo_config[repo.name].dict()
+        assert config_kwargs.pop('type') == GITHUB_TYPE
+        assert config_kwargs.pop('name') == repo.name
 
-        with tempfile.NamedTemporaryFile() as ntf:
-            pkg_refs = pkg_repo.collect_all_published_packages()
-            BackendInstanceManager.dump_pkg_refs_and_mtime(ntf.name, pkg_refs)
-
-            assert not pkg_repo.local_index_is_up_to_date(ntf.name)
-            result = pkg_repo.upload_index(ntf.name)
-            return result.status == UploadIndexStatus.SUCCEEDED
+        update_index(
+                type=GITHUB_TYPE,
+                name=repo.name,
+                secret=repo.write_secret.raw,
+                **config_kwargs,
+        )
+        return True
 
 
 GitHubTestKit.pytest_injection()
