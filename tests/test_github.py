@@ -1,5 +1,7 @@
 from datetime import datetime
 from typing import Tuple
+import random
+import time
 import os
 
 import shortuuid
@@ -33,6 +35,10 @@ class GitHubTestKit(TestKit):
         description = ('Autogen test repo for the project private-pypi/private-pypi-github, '
                        f'created by user {gh_user.login}.')
         repo_name = f'private-pypi-github-test-{timestamp}'
+
+        # Random sleep to avoid API call limit.
+        time.sleep(random.randrange(5, 30))
+
         gh_entity.create_repo(
                 name=repo_name,
                 description=description,
