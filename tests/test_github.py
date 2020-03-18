@@ -1,6 +1,5 @@
 from datetime import datetime
 from typing import Tuple
-import random
 import time
 import os
 
@@ -36,9 +35,6 @@ class GitHubTestKit(TestKit):
                        f'created by user {gh_user.login}.')
         repo_name = f'private-pypi-github-test-{timestamp}'
 
-        # Random sleep to avoid API call limit.
-        time.sleep(random.randrange(5, 30))
-
         gh_entity.create_repo(
                 name=repo_name,
                 description=description,
@@ -49,6 +45,8 @@ class GitHubTestKit(TestKit):
                 has_projects=False,
                 auto_init=True,
         )
+        # Might take some time to setup.
+        time.sleep(10)
 
         pkg_repo_config = GitHubConfig(
                 name=name,
