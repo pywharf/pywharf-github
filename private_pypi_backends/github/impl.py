@@ -58,11 +58,6 @@ class GitHubAuthToken(PkgRepoSecret):
     def token(self) -> str:
         return self.raw
 
-    def secret_hash(self) -> str:
-        sha256_algo = hashlib.sha256()
-        sha256_algo.update(self.token.encode())
-        return f'github-{sha256_algo.hexdigest()}'
-
 
 class GitHubPkgRef(PkgRef):
     # Override.
