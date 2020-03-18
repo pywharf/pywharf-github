@@ -449,7 +449,7 @@ jobs:
  build:
   runs-on: ubuntu-latest
   steps:
-   - uses: private-pypi/private-pypi-github-update-index@master
+   - uses: private-pypi/private-pypi-github@master
 '''
     gh_repo.create_file(
             path='.github/workflows/main.yml',
