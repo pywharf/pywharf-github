@@ -21,7 +21,7 @@ inputs:
     default: ${{ github.token }}
 runs:
   using: 'docker'
-  image: 'docker://privatepypi/private-pypi:0.1.0a3'
+  image: 'docker://privatepypi/private-pypi:0.1.0a4'
   args:
     - 'update_index'
     - '--type'
