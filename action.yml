@@ -28,7 +28,7 @@ runs:
     - 'github'
     - '--name'
     - ${{ inputs.repo }}
-    - '---secret'
+    - '--secret'
     - ${{ inputs.github_token }}
     - '--owner'
     - ${{ inputs.owner }}
