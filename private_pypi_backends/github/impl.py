@@ -413,14 +413,6 @@ def github_init_pkg_repo(
         gh_repo.create_git_ref(f'refs/heads/{branch}', master_ref_sha)
         gh_repo.edit(default_branch=branch)
 
-    # Create empty index. If not, `download_index` will not succeed.
-    gh_repo.create_file(
-            path=index_filename,
-            message='Empty index created.',
-            branch=branch,
-            content='',
-    )
-
     # Workflow setup in the default branch.
     main_yaml_content_with = '\n'
     # For compatibility, don't add the `with` statement if default values are used.
@@ -433,7 +425,7 @@ def github_init_pkg_repo(
 '''
     # Body.
     main_yaml_content = f'''\
-name: update-index-job
+name: update-index
 on:
  push:
  schedule:
@@ -456,7 +448,7 @@ jobs:
 '''
     gh_repo.create_file(
             path='.github/workflows/main.yml',
-            message='Workflow sync-index created.',
+            message='Workflow update-index created.',
             branch=branch,
             content=main_yaml_content + main_yaml_content_with,
     )
