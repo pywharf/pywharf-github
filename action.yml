@@ -1,11 +1,13 @@
 name: 'private-pypi-github update index.'
 description: 'Index all published packages.'
 inputs:
-  github_repository:
-    description: 'owner/repo'
-    required: false
-    default: ${{ github.repository }}
-  github_branch:
+  owner:
+    description: 'owner'
+    required: true
+  repo:
+    description: 'repo'
+    required: true
+  branch:
     description: 'branch'
     required: false
     default: 'master'
@@ -21,14 +23,18 @@ runs:
   using: 'docker'
   image: 'docker://privatepypi/private-pypi:0.1.0a3'
   args:
-    - 'github.init_pkg_repo'
+    - 'update_index'
+    - '--type'
+    - 'github'
     - '--name'
-    - ${{ inputs.github_repository }}
-    - '--token'
+    - ${{ inputs.repo }}
+    - '---secret'
     - ${{ inputs.github_token }}
-    - '--owner_repo'
-    - ${{ inputs.github_repository }}
+    - '--owner'
+    - ${{ inputs.owner }}
+    - '--repo'
+    - ${{ inputs.repo }}
     - '--branch'
-    - ${{ inputs.github_branch }}
+    - ${{ inputs.branch }}
     - '--index_filename'
     - ${{ inputs.index_filename }}

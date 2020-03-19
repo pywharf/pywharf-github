@@ -378,21 +378,14 @@ class GitHubPkgRepo(PkgRepo):
 def github_init_pkg_repo(
         name: str,
         token: str,
+        repo: str,
         owner: Optional[str] = None,
-        repo: Optional[str] = None,
-        owner_repo: Optional[str] = None,
         branch: str = basic_model_get_default(GitHubConfig, 'branch'),
         index_filename: str = basic_model_get_default(GitHubConfig, 'index_filename'),
         sync_index_interval: int = basic_model_get_default(GitHubConfig, 'sync_index_interval'),
 ):
     gh_client = github.Github(token)
     gh_user = gh_client.get_user()
-
-    if owner_repo:
-        assert owner is None and repo is None
-        owner, repo = owner_repo.split('/')
-    else:
-        assert repo
 
     if owner is None or owner == gh_user.login:
         gh_entity = gh_user
@@ -449,7 +442,17 @@ jobs:
  build:
   runs-on: ubuntu-latest
   steps:
-   - uses: private-pypi/private-pypi-github@master
+   - name: Split owner/repo
+     run: |
+       OWNER=$(cut -d/ -f1 <<< ${{{{ github.repository }}}})
+       REPO=$(cut -d/ -f2 <<< ${{{{ github.repository }}}})
+       echo "::set-env name=OWNER::${{OWNER}}"
+       echo "::set-env name=REPO::${{REPO}}"
+   - name: Update index.
+     uses: private-pypi/private-pypi-github@master
+     with:
+       owner: ${{{{ env.OWNER }}}}
+       repo: ${{{{ env.REPO }}}}
 '''
     gh_repo.create_file(
             path='.github/workflows/main.yml',
