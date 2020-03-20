@@ -248,7 +248,14 @@ class GitHubPkgRepo(PkgRepo):
     @record_error_if_raises
     def upload_package(self, filename: str, meta: Dict[str, str], path: str) -> UploadPackageResult:
         ctx = self.upload_package_job(filename, meta, path)
-        status = UploadPackageStatus.SUCCEEDED if not ctx.failed else UploadPackageStatus.FAILED
+
+        if not ctx.failed:
+            status = UploadPackageStatus.SUCCEEDED
+        elif 'already exist' in ctx.message:
+            status = UploadPackageStatus.CONFLICT
+        else:
+            status = UploadPackageStatus.BAD_REQUEST
+
         return UploadPackageResult(
                 status=status,
                 message=ctx.message,
