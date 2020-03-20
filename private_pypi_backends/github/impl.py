@@ -390,7 +390,43 @@ def github_init_pkg_repo(
         branch: str = basic_model_get_default(GitHubConfig, 'branch'),
         index_filename: str = basic_model_get_default(GitHubConfig, 'index_filename'),
         sync_index_interval: int = basic_model_get_default(GitHubConfig, 'sync_index_interval'),
+        dry_run: bool = False,
 ):
+    main_yaml = f'''\
+name: update-index
+env:
+  PRIVATE_PYPI_IMAGE: docker://privatepypi/private-pypi:0.1.0a10
+on:
+  push:
+  schedule:
+    - cron: "* * * * *"
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Split owner/repo
+        run: |
+          OWNER=$(cut -d/ -f1 <<< ${{{{ github.repository }}}})
+          REPO=$(cut -d/ -f2 <<< ${{{{ github.repository }}}})
+          echo "::set-env name=OWNER::${{OWNER}}"
+          echo "::set-env name=REPO::${{REPO}}"
+      - name: Update index.
+        uses: ${{{{ env.PRIVATE_PYPI_IMAGE }}}}
+        with:
+          args: >-
+            update_index
+            --type github
+            --name ${{{{ env.REPO }}}}
+            --secret ${{{{ github.token }}}}
+            --owner ${{{{ env.OWNER }}}}
+            --repo ${{{{ env.REPO }}}}
+            --branch {branch}
+            --index_filename {index_filename}
+'''
+    if dry_run:
+        print(main_yaml)
+        return
+
     gh_client = github.Github(token)
     gh_user = gh_client.get_user()
 
@@ -420,44 +456,11 @@ def github_init_pkg_repo(
         gh_repo.create_git_ref(f'refs/heads/{branch}', master_ref_sha)
         gh_repo.edit(default_branch=branch)
 
-    # Workflow setup in the default branch.
-    main_yaml_content_with = '\n'
-    # For compatibility, don't add the `with` statement if default values are used.
-    if branch != basic_model_get_default(GitHubConfig, 'branch') \
-            or index_filename != basic_model_get_default(GitHubConfig, 'index_filename'):
-        main_yaml_content_with = f'''\
-     with:
-       github_branch: {branch}
-       index_filename: {index_filename}
-'''
-    # Body.
-    main_yaml_content = f'''\
-name: update-index
-on:
- push:
- schedule:
-  - cron: "* * * * *"
-jobs:
- build:
-  runs-on: ubuntu-latest
-  steps:
-   - name: Split owner/repo
-     run: |
-       OWNER=$(cut -d/ -f1 <<< ${{{{ github.repository }}}})
-       REPO=$(cut -d/ -f2 <<< ${{{{ github.repository }}}})
-       echo "::set-env name=OWNER::${{OWNER}}"
-       echo "::set-env name=REPO::${{REPO}}"
-   - name: Update index.
-     uses: private-pypi/private-pypi-github@master
-     with:
-       owner: ${{{{ env.OWNER }}}}
-       repo: ${{{{ env.REPO }}}}
-'''
     gh_repo.create_file(
             path='.github/workflows/main.yml',
             message='Workflow update-index created.',
             branch=branch,
-            content=main_yaml_content + main_yaml_content_with,
+            content=main_yaml,
     )
 
     # Print config.
