@@ -599,7 +599,10 @@ def github_gen_gh_pages(
                 title=f'Links for {distrib}',
                 link_items=link_items,
         )
-        with open(os.path.join(output_folder, f'{distrib}.html'), 'w') as fout:
+
+        distrib_folder = os.path.join(output_folder, distrib)
+        os.mkdir(distrib_folder)
+        with open(os.path.join(distrib_folder, 'index.html'), 'w') as fout:
             fout.write(distrib_html)
 
 
