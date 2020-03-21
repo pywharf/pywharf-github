@@ -420,7 +420,6 @@ jobs:
         run: |
           echo "::set-env name=OWNER::$(cut -d/ -f1 <<< ${{{{ github.repository }}}})"
           echo "::set-env name=REPO::$(cut -d/ -f2 <<< ${{{{ github.repository }}}})"
-
       - name: Update index.
         uses: ${{{{ env.PRIVATE_PYPI_IMAGE }}}}
         with:
@@ -434,7 +433,7 @@ jobs:
             --branch {branch}
             --index_filename {index_filename}
 '''
-    build_gh_pages_yaml = f'''\
+    build_gh_pages_yaml = f'''
       - run: mkdir gh-pages
       - name: Generate public github pages.
         uses: ${{{{ env.PRIVATE_PYPI_IMAGE }}}}
