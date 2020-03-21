@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "private-pypi-github"
-version = "0.1.1-alpha.14"
+version = "0.1.1-alpha.15"
 description = ""
 license = "MIT"
 authors = ["huntzhan <huntzhan.dev@gmail.com>"]
@@ -28,6 +28,7 @@ pylint = "^2.4.4"
 
 [tool.poetry.scripts]
 private_pypi_github_init_pkg_repo = "private_pypi_backends.github.impl:github_init_pkg_repo_cli"
+private_pypi_github_gen_gh_pages = "private_pypi_backends.github.impl:github_gen_gh_pages_cli"
 
 [build-system]
 requires = ["poetry>=0.12"]

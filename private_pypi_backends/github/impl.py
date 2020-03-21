@@ -13,10 +13,12 @@ import toml
 
 from private_pypi_core.backend import (
         BackendInstanceManager,
+        LocalPaths,
         PkgRef,
         PkgRepo,
         PkgRepoConfig,
         PkgRepoSecret,
+        PkgRepoIndex,
         UploadPackageStatus,
         UploadPackageResult,
         UploadPackageContext,
@@ -26,6 +28,11 @@ from private_pypi_core.backend import (
         DownloadIndexResult,
         record_error_if_raises,
         basic_model_get_default,
+)
+from private_pypi_core.workflow import (
+        LinkItem,
+        PAGE_TEMPLATE,
+        build_page_api_simple,
 )
 from private_pypi_core.utils import git_hash_sha, split_package_ext
 
@@ -390,6 +397,7 @@ def github_init_pkg_repo(
         branch: str = basic_model_get_default(GitHubConfig, 'branch'),
         index_filename: str = basic_model_get_default(GitHubConfig, 'index_filename'),
         sync_index_interval: int = basic_model_get_default(GitHubConfig, 'sync_index_interval'),
+        enable_gh_pages: bool = False,
         dry_run: bool = False,
 ):
     main_yaml = f'''\
@@ -398,6 +406,10 @@ env:
   PRIVATE_PYPI_IMAGE: docker://privatepypi/private-pypi:0.1.0a10
 on:
   push:
+    tags:
+      - *
+    tags-ignore:
+      - gh-pages
   schedule:
     - cron: "* * * * *"
 jobs:
@@ -406,10 +418,9 @@ jobs:
     steps:
       - name: Split owner/repo
         run: |
-          OWNER=$(cut -d/ -f1 <<< ${{{{ github.repository }}}})
-          REPO=$(cut -d/ -f2 <<< ${{{{ github.repository }}}})
-          echo "::set-env name=OWNER::${{OWNER}}"
-          echo "::set-env name=REPO::${{REPO}}"
+          echo "::set-env name=OWNER::$(cut -d/ -f1 <<< ${{{{ github.repository }}}})"
+          echo "::set-env name=REPO::$(cut -d/ -f2 <<< ${{{{ github.repository }}}})"
+
       - name: Update index.
         uses: ${{{{ env.PRIVATE_PYPI_IMAGE }}}}
         with:
@@ -423,6 +434,33 @@ jobs:
             --branch {branch}
             --index_filename {index_filename}
 '''
+    build_gh_pages_yaml = f'''\
+      - run: mkdir gh-pages
+      - name: Generate public github pages.
+        uses: ${{{{ env.PRIVATE_PYPI_IMAGE }}}}
+        with:
+          args: >-
+            github.gen_gh_pages
+            --name ${{{{ env.REPO }}}}
+            --token ${{{{ github.token }}}}
+            --owner ${{{{ env.OWNER }}}}
+            --repo ${{{{ env.REPO }}}}
+            --branch {branch}
+            --index_filename {index_filename}
+            --output_folder gh-pages
+      - name: Publish public github pages.
+        run: |
+          cd gh-pages
+          git init
+          git checkout -b gh-pages
+          git add --all
+          git commit -m "Publish github pages."
+          git remote add origin https://${{{{ github.token }}}}@github.com/${{{{ env.OWNER }}}}/${{{{ env.REPO }}}}.git
+          git push -u origin gh-pages --force
+'''
+    if enable_gh_pages:
+        main_yaml += build_gh_pages_yaml
+
     if dry_run:
         print(main_yaml)
         return
@@ -488,4 +526,82 @@ jobs:
     print(toml.dumps({name: github_config_dict}))
 
 
+def github_gen_gh_pages(
+        name: str,
+        token: str,
+        owner: str,
+        repo: str,
+        output_folder: str,
+        branch: str = basic_model_get_default(GitHubConfig, 'branch'),
+        index_filename: str = basic_model_get_default(GitHubConfig, 'index_filename'),
+):
+    if not os.path.isdir(output_folder):
+        raise FileNotFoundError(output_folder)
+
+    pkg_repo_config = GitHubConfig(
+            name=name,
+            owner=owner,
+            repo=repo,
+            branch=branch,
+            index_filename=index_filename,
+    )
+    pkg_repo_secret = GitHubAuthToken(
+            name=name,
+            raw=token,
+    )
+    local_paths = LocalPaths(
+            index='/dev/null',
+            log='/dev/null',
+            lock='/dev/null',
+            job='/dev/null',
+            cache='/dev/null',
+    )
+    pkg_repo = GitHubPkgRepo(
+            config=pkg_repo_config,
+            secret=pkg_repo_secret,
+            local_paths=local_paths,
+    )
+
+    # Download index file.
+    index_path = os.path.join(output_folder, index_filename)
+    result = pkg_repo.download_index(index_path)
+    if result.status != DownloadIndexStatus.SUCCEEDED:
+        raise RuntimeError(result.message)
+
+    # Parse.
+    bim = BackendInstanceManager()
+    pkg_refs, mtime = bim.load_pkg_refs_and_mtime(index_path)
+    pkg_repo_index = PkgRepoIndex(pkg_refs, mtime)
+
+    # Homepage.
+    index_html = build_page_api_simple(pkg_repo_index)
+    with open(os.path.join(output_folder, 'index.html'), 'w') as fout:
+        fout.write(index_html)
+
+    # Distribution page.
+    for distrib in pkg_repo_index.all_distributions:
+        distrib_pkg_refs: List[GitHubPkgRef] = pkg_repo_index.get_pkg_refs(distrib)
+
+        link_items = []
+        for distrib_pkg_ref in distrib_pkg_refs:
+            response = requests.get(distrib_pkg_ref.url)
+            if response.status_code != 200:
+                raise RuntimeError(f'Failed to request {distrib_pkg_ref.url}')
+            browser_download_url = response.json()['browser_download_url']
+
+            link_items.append(
+                    LinkItem(
+                            href=f'{browser_download_url}#sha256={distrib_pkg_ref.sha256}',
+                            text=f'{distrib_pkg_ref.package}.{distrib_pkg_ref.ext}',
+                    ))
+
+        distrib_html = PAGE_TEMPLATE.render(
+                title=f'Links for {distrib}',
+                link_items=link_items,
+        )
+        with open(os.path.join(output_folder, f'{distrib}.html'), 'w') as fout:
+            fout.write(distrib_html)
+
+
 github_init_pkg_repo_cli = lambda: fire.Fire(github_init_pkg_repo)  # pylint: disable=invalid-name
+github_gen_gh_pages_cli = lambda: fire.Fire(github_gen_gh_pages)  # pylint: disable=invalid-name
