@@ -398,7 +398,7 @@ def github_init_pkg_repo(
         branch: str = basic_model_get_default(GitHubConfig, 'branch'),
         index_filename: str = basic_model_get_default(GitHubConfig, 'index_filename'),
         sync_index_interval: int = basic_model_get_default(GitHubConfig, 'sync_index_interval'),
-        private_pypi_version: str = '0.1.0a11',
+        private_pypi_version: str = '0.1.0a12',
         enable_gh_pages: bool = False,
         dry_run: bool = False,
 ):
@@ -485,6 +485,7 @@ jobs:
             has_projects=False,
             auto_init=True,
     )
+    # GitHub might take some time to create the READMD.md.
     time.sleep(3.0)
 
     # Default branch setup.
@@ -500,6 +501,22 @@ jobs:
             branch=branch,
             content=main_yaml,
     )
+
+    if enable_gh_pages:
+        # Create branch gh-pages.
+        gh_repo.create_git_ref(f'refs/heads/gh-pages', master_ref_sha)
+        # Setup index.html.
+        gh_repo.create_file(
+                path='index.html',
+                message='Workflow update-index created.',
+                branch='gh-pages',
+                content='Initialized.',
+        )
+        # Request page build to active github page feature.
+        gh_repo._requester.requestJsonAndCheck(  # pylint: disable=protected-access
+                'POST',
+                gh_repo.url + '/pages/builds',
+        )
 
     # Print config.
     github_config = GitHubConfig(
