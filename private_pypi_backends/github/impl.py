@@ -3,6 +3,7 @@ from dataclasses import dataclass
 import os
 import os.path
 import traceback
+import time
 from typing import Dict, List, Optional, Tuple
 from urllib.parse import urlparse
 
@@ -397,19 +398,16 @@ def github_init_pkg_repo(
         branch: str = basic_model_get_default(GitHubConfig, 'branch'),
         index_filename: str = basic_model_get_default(GitHubConfig, 'index_filename'),
         sync_index_interval: int = basic_model_get_default(GitHubConfig, 'sync_index_interval'),
+        private_pypi_version: str = '0.1.0a11',
         enable_gh_pages: bool = False,
         dry_run: bool = False,
 ):
+    docker_image = f'docker://privatepypi/private-pypi:{private_pypi_version}'
+
     main_yaml = f'''\
 name: update-index
-env:
-  PRIVATE_PYPI_IMAGE: docker://privatepypi/private-pypi:0.1.0a10
 on:
   push:
-    tags:
-      - *
-    tags-ignore:
-      - gh-pages
   schedule:
     - cron: "* * * * *"
 jobs:
@@ -421,7 +419,7 @@ jobs:
           echo "::set-env name=OWNER::$(cut -d/ -f1 <<< ${{{{ github.repository }}}})"
           echo "::set-env name=REPO::$(cut -d/ -f2 <<< ${{{{ github.repository }}}})"
       - name: Update index.
-        uses: ${{{{ env.PRIVATE_PYPI_IMAGE }}}}
+        uses: {docker_image}
         with:
           args: >-
             update_index
@@ -436,7 +434,7 @@ jobs:
     build_gh_pages_yaml = f'''
       - run: mkdir gh-pages
       - name: Generate public github pages.
-        uses: ${{{{ env.PRIVATE_PYPI_IMAGE }}}}
+        uses: {docker_image}
         with:
           args: >-
             github.gen_gh_pages
@@ -450,11 +448,13 @@ jobs:
       - name: Publish public github pages.
         run: |
           cd gh-pages
+          git config --global user.email "github-actions@github.com"
+          git config --global user.name "github-actions[bot]"
           git init
           git checkout -b gh-pages
           git add --all
           git commit -m "Publish github pages."
-          git remote add origin https://${{{{ github.token }}}}@github.com/${{{{ env.OWNER }}}}/${{{{ env.REPO }}}}.git
+          git remote add origin https://${{{{ github.actor }}}}:${{{{ github.token }}}}@github.com/${{{{ env.OWNER }}}}/${{{{ env.REPO }}}}.git
           git push -u origin gh-pages --force
 '''
     if enable_gh_pages:
@@ -485,6 +485,7 @@ jobs:
             has_projects=False,
             auto_init=True,
     )
+    time.sleep(3.0)
 
     # Default branch setup.
     master_ref = gh_repo.get_git_ref('heads/master')
