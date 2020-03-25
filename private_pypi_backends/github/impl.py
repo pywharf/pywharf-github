@@ -398,7 +398,7 @@ def github_init_pkg_repo(
         branch: str = basic_model_get_default(GitHubConfig, 'branch'),
         index_filename: str = basic_model_get_default(GitHubConfig, 'index_filename'),
         sync_index_interval: int = basic_model_get_default(GitHubConfig, 'sync_index_interval'),
-        private_pypi_version: str = '0.1.0a12',
+        private_pypi_version: str = '0.2.0',
         enable_gh_pages: bool = False,
         dry_run: bool = False,
 ):
