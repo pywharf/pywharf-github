@@ -12,7 +12,7 @@ import github
 import requests
 import toml
 
-from private_pypi_core.backend import (
+from pywharf_core.backend import (
         BackendInstanceManager,
         LocalPaths,
         PkgRef,
@@ -30,12 +30,12 @@ from private_pypi_core.backend import (
         record_error_if_raises,
         basic_model_get_default,
 )
-from private_pypi_core.workflow import (
+from pywharf_core.workflow import (
         LinkItem,
         PAGE_TEMPLATE,
         build_page_api_simple,
 )
-from private_pypi_core.utils import git_hash_sha, split_package_ext
+from pywharf_core.utils import git_hash_sha, split_package_ext
 
 GITHUB_TYPE = 'github'
 
@@ -398,11 +398,11 @@ def github_init_pkg_repo(
         branch: str = basic_model_get_default(GitHubConfig, 'branch'),
         index_filename: str = basic_model_get_default(GitHubConfig, 'index_filename'),
         sync_index_interval: int = basic_model_get_default(GitHubConfig, 'sync_index_interval'),
-        private_pypi_version: str = '0.2.0',
+        pywharf_version: str = '0.2.0',
         enable_gh_pages: bool = False,
         dry_run: bool = False,
 ):
-    docker_image = f'docker://privatepypi/private-pypi:{private_pypi_version}'
+    docker_image = f'docker://pywharf/pywharf:{pywharf_version}'
 
     main_yaml = f'''\
 name: update-index
@@ -473,12 +473,12 @@ jobs:
         gh_entity = gh_client.get_organization(owner)
 
     # Create repo.
-    description = ('Autogen package repository of private-pypi/private-pypi, '
+    description = ('Autogen package repository of pywharf/pywharf, '
                    f'created by user {gh_user.login}. ')
     gh_repo = gh_entity.create_repo(
             name=repo,
             description=description,
-            homepage='https://github.com/private-pypi/private-pypi',
+            homepage='https://github.com/pywharf/pywharf',
             has_issues=False,
             has_wiki=False,
             has_downloads=False,
@@ -539,7 +539,7 @@ jobs:
     if sync_index_interval == basic_model_get_default(GitHubConfig, 'sync_index_interval'):
         github_config_dict.pop('sync_index_interval')
 
-    print('Package repository TOML config (please add to your private-pypi config file):\n')
+    print('Package repository TOML config (please add to your pywharf config file):\n')
     print(toml.dumps({name: github_config_dict}))
 
 

@@ -1,5 +1,5 @@
-from private_pypi_core.backend import BackendRegistration
-from private_pypi_backends.github.impl import (
+from pywharf_core.backend import BackendRegistration
+from pywharf_backends.github.impl import (
         GITHUB_TYPE,
         GitHubConfig,
         GitHubAuthToken,

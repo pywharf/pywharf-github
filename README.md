@@ -1,3 +1,3 @@
-# private-pypi-github
+# pywharf-github
 
-The GitHub backend of https://github.com/private-pypi/private-pypi
+The GitHub backend of https://github.com/pywharf/pywharf

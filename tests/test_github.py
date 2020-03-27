@@ -6,9 +6,9 @@ import os
 import shortuuid
 import github
 
-from private_pypi_testkit import TestKit, RepoInfoForTest
-from private_pypi_core.workflow import update_index
-from private_pypi_backends.github.impl import (
+from pywharf_testkit import TestKit, RepoInfoForTest
+from pywharf_core.workflow import update_index
+from pywharf_backends.github.impl import (
         GITHUB_TYPE,
         GitHubConfig,
         GitHubAuthToken,
@@ -31,14 +31,14 @@ class GitHubTestKit(TestKit):
         gh_entity = gh_client.get_organization(org)
 
         timestamp = datetime.now().strftime('%Y%m%d%H%M%S%f')
-        description = ('Autogen test repo for the project private-pypi/private-pypi-github, '
+        description = ('Autogen test repo for the project pywharf/pywharf-github, '
                        f'created by user {gh_user.login}.')
-        repo_name = f'private-pypi-github-test-{timestamp}'
+        repo_name = f'pywharf-github-test-{timestamp}'
 
         gh_entity.create_repo(
                 name=repo_name,
                 description=description,
-                homepage='https://github.com/private-pypi/private-pypi-github',
+                homepage='https://github.com/pywharf/pywharf-github',
                 has_issues=False,
                 has_wiki=False,
                 has_downloads=False,

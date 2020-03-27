@@ -1,25 +1,25 @@
 [tool.poetry]
-name = "private-pypi-github"
+name = "pywharf-github"
 version = "0.2.0"
 description = ""
 license = "MIT"
 authors = ["huntzhan <huntzhan.dev@gmail.com>"]
 readme = "README.md"
-repository = "https://github.com/private-pypi/private-pypi-github"
+repository = "https://github.com/pywharf/pywharf-github"
 keywords = ["private", "pypi", "github", "packaging", "dependency"]
 classifiers = [
     "Topic :: Software Development :: Build Tools",
     "Topic :: Software Development :: Libraries :: Python Modules"
 ]
 packages = [
-    { include = "private_pypi_backends" },
+    { include = "pywharf_backends" },
 ]
 
 [tool.poetry.dependencies]
 python = "^3.7"
 PyGithub = "^1.46"
 requests = "^2.23.0"
-private-pypi-core = "^0.2.0"
+pywharf-core = "^0.2.0"
 
 [tool.poetry.dev-dependencies]
 pytest = "^5.2"
@@ -27,8 +27,8 @@ yapf = "^0.29.0"
 pylint = "^2.4.4"
 
 [tool.poetry.scripts]
-private_pypi_github_init_pkg_repo = "private_pypi_backends.github.impl:github_init_pkg_repo_cli"
-private_pypi_github_gen_gh_pages = "private_pypi_backends.github.impl:github_gen_gh_pages_cli"
+pywharf_github_init_pkg_repo = "pywharf_backends.github.impl:github_init_pkg_repo_cli"
+pywharf_github_gen_gh_pages = "pywharf_backends.github.impl:github_gen_gh_pages_cli"
 
 [build-system]
 requires = ["poetry>=0.12"]
